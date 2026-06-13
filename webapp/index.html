@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meme Generator - 表情包生成器</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <h1 class="logo">Meme Generator</h1>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="搜索表情包..." autocomplete="off">
+      <select id="tag-select">
+        <option value="">全部标签</option>
+      </select>
+    </div>
+    <div class="header-stats">
+      <span id="meme-count">0</span> 个表情
+    </div>
+  </div>
+</header>
+
+<div class="main-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>标签</h3>
+      <button class="sidebar-toggle" id="sidebar-toggle" aria-label="收起标签">☰</button>
+    </div>
+    <div class="tag-list" id="tag-list"></div>
+  </aside>
+
+  <main class="content">
+    <!-- Meme Grid -->
+    <section class="meme-grid-section">
+      <div class="meme-grid" id="meme-grid"></div>
+      <div class="pagination" id="pagination"></div>
+      <div class="loading" id="loading" style="display:none">
+        <div class="spinner"></div>
+        <span>加载中...</span>
+      </div>
+    </section>
+
+    <!-- Meme Form (shown when a meme is selected) -->
+    <section class="meme-form-section" id="meme-form-section" style="display:none">
+      <div class="form-header">
+        <h2 id="form-title">选择一个表情包</h2>
+        <button class="btn-close" id="form-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="form-body">
+        <div class="form-group" id="image-group" style="display:none">
+          <label>上传图片 (<span id="image-count"></span>)</label>
+          <div class="image-upload-area" id="image-upload-area"></div>
+        </div>
+        <div class="form-group" id="text-group" style="display:none">
+          <label>文字</label>
+          <div id="text-inputs"></div>
+        </div>
+        <div class="form-group" id="args-group" style="display:none">
+          <label>参数</label>
+          <div id="args-inputs"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-preview" id="btn-preview">预览</button>
+          <button class="btn btn-generate" id="btn-generate">生成</button>
+          <button class="btn btn-download" id="btn-download" disabled>下载</button>
+        </div>
+      </div>
+      <div class="result-area" id="result-area" style="display:none">
+        <img id="result-image" alt="生成结果">
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Mobile sidebar toggle -->
+<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="标签">☰</button>
+
+<!-- Toast notifications -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/static/js/utils.js"></script>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/browser.js"></script>
+<script src="/static/js/form.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

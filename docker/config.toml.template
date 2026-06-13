@@ -1,0 +1,11 @@
+[meme]
+load_builtin_memes = false
+meme_dirs = ["/app/memes/builtin", "/app/memes/contrib", "/app/memes/crazy_emoji", "/app/memes/meme_emoji", "/app/memes/tudou_meme"]
+meme_disabled_list = []
+
+[server]
+host = "0.0.0.0"
+port = 2233
+
+[log]
+log_level = "INFO"
