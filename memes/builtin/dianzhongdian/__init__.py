@@ -3,14 +3,18 @@ from datetime import datetime
 from pil_utils import BuildImage
 
 from meme_generator import add_meme
-from meme_generator.exception import TextOverLength
+from meme_generator.exception import MemeFeedback, TextOverLength
 from meme_generator.utils import translate
 
 
 def dianzhongdian(images: list[BuildImage], texts: list[str], args):
     if len(texts) == 1:
         text = texts[0]
-        trans = translate(text, lang_to="jp")
+        try:
+            trans = translate(text, lang_to="jp")
+        except MemeFeedback:
+            # Keep the Web version usable when optional Baidu credentials are absent.
+            trans = text
     else:
         text = texts[0]
         trans = texts[1]
@@ -55,7 +59,7 @@ add_meme(
     max_images=1,
     min_texts=1,
     max_texts=2,
-    default_texts=["救命啊"],
+    default_texts=["救命啊", "助けて"],
     keywords=["入典", "典中典", "黑白草图"],
     date_created=datetime(2022, 3, 12),
     date_modified=datetime(2023, 2, 14),

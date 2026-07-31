@@ -6,6 +6,7 @@ const Browser = {
     total: 0,
     items: [],
     selectedKey: null,
+    loadRequestId: 0,
   },
 
   elements: {
@@ -36,6 +37,7 @@ const Browser = {
   },
 
   async loadMemes() {
+    const requestId = ++this.state.loadRequestId;
     Utils.showLoading(true);
     try {
       const data = await API.listMemes({
@@ -43,15 +45,17 @@ const Browser = {
         page: this.state.page,
         pageSize: this.state.pageSize,
       });
+      if (requestId !== this.state.loadRequestId) return;
       this.state.total = data.total;
       this.state.items = data.items;
       this.elements.memeCount.textContent = data.total;
       this.renderGrid(data.items);
       this.renderPagination(data.total, data.page, data.page_size);
     } catch (e) {
+      if (requestId !== this.state.loadRequestId) return;
       Utils.toast('加载表情列表失败: ' + e.message, 'error');
     } finally {
-      Utils.showLoading(false);
+      if (requestId === this.state.loadRequestId) Utils.showLoading(false);
     }
   },
 
@@ -75,10 +79,18 @@ const Browser = {
 
       const info = document.createElement('div');
       info.className = 'meme-card-info';
-      info.innerHTML = `
-        <div class="meme-card-name" title="${item.key}">${item.key}</div>
-        <div class="meme-card-keywords" title="${item.keywords.join('/')}">${item.keywords.join('/')}</div>
-      `;
+      const name = document.createElement('div');
+      name.className = 'meme-card-name';
+      name.title = item.key;
+      name.textContent = item.key;
+
+      const keywords = document.createElement('div');
+      keywords.className = 'meme-card-keywords';
+      keywords.title = item.keywords.join('/');
+      keywords.textContent = item.keywords.join('/');
+
+      info.appendChild(name);
+      info.appendChild(keywords);
 
       card.appendChild(img);
       card.appendChild(info);

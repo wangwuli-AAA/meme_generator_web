@@ -71,6 +71,9 @@ def kurogames_iuno_say(images, texts: list[str], args: Model):
         "lines_align": "center",
         "font_families": ["FZShaoEr-M11S"],
     }
+    if img_index == 0:
+        font_params["max_fontsize"] = 36
+        font_params["min_fontsize"] = 10
     
     try:
         frame.draw_text(

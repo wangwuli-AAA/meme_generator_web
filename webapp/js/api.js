@@ -19,6 +19,12 @@ const API = {
     return `/memes/${encodeURIComponent(key)}/preview`;
   },
 
+  async getPreview(key) {
+    const resp = await fetch(this.getPreviewUrl(key));
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.blob();
+  },
+
   async generate(key, formData) {
     const resp = await fetch(`/memes/${encodeURIComponent(key)}/`, {
       method: 'POST',

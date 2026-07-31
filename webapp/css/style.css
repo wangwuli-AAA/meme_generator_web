@@ -305,16 +305,19 @@ body {
   margin-bottom: 8px;
 }
 
-.text-input-row input {
+.text-input-row textarea {
   width: 100%;
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
   outline: none;
+  resize: vertical;
 }
 
-.text-input-row input:focus { border-color: var(--primary); }
+.text-input-row textarea:focus { border-color: var(--primary); }
 
 /* Args Inputs */
 .args-row {

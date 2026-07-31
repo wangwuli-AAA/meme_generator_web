@@ -26,10 +26,10 @@ def yuzu_soft_ticket(images: list[BuildImage], texts: list[str], args: MemeArgsM
     text = f"{name}"
     try:
         frame.draw_text(
-            (485, 544, 625, 583),
+            (485, 530, 690, 600),
             text,
-            max_fontsize=100,
-            min_fontsize=30,
+            max_fontsize=50,
+            min_fontsize=10,
             lines_align="center",
             font_families=["FZShaoEr-M11S"],
         )
