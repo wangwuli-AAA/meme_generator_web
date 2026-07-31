@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await API.logout();
     } finally {
-      window.location.replace('/');
+      window.location.reload();
     }
   });
 });

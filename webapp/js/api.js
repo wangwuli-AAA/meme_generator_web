@@ -1,7 +1,11 @@
 const API = {
   checkAuth(response) {
     if (response.status === 401) {
-      window.location.replace('/');
+      if (window.location.pathname === '/') {
+        window.location.reload();
+      } else {
+        window.location.replace('/');
+      }
       throw new Error('登录状态已过期');
     }
     return response;
