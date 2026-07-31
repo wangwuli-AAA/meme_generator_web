@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import sys
 import time
@@ -63,6 +64,7 @@ def _load_session_secret() -> str:
 
 
 SESSION_SECRET = _load_session_secret()
+PUBLIC_PREVIEW_PATH = re.compile(r"^/memes/[^/]+/preview$")
 
 # Write config.toml BEFORE importing meme_generator (it loads at import time)
 meme_dirs = []
@@ -171,9 +173,22 @@ async def require_login(request: Request, call_next):
     path = request.url.path
     public_path = path in {"/", "/auth/login", "/auth/logout", "/auth/me"}
     public_asset = path.startswith("/static/")
-    if public_path or public_asset or _get_session_user(request):
-        return await call_next(request)
-    return JSONResponse(status_code=401, content={"detail": "请先登录"})
+    public_preview = (
+        request.method == "GET" and PUBLIC_PREVIEW_PATH.fullmatch(path) is not None
+    )
+    if not (public_path or public_asset or public_preview or _get_session_user(request)):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "请先登录"},
+            headers={"Cache-Control": "no-store"},
+        )
+
+    response = await call_next(request)
+    if public_preview and response.status_code == 200:
+        response.headers["Cache-Control"] = "public, max-age=86400"
+    elif not public_asset:
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 class LoginRequest(BaseModel):

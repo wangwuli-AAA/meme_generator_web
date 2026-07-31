@@ -1,11 +1,15 @@
 services:
   meme-web:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    image: meme-web:latest
+    pull_policy: never
     ports:
-      - "2233:2233"
+      - "${MEME_WEB_PORT:-2233}:2233"
     environment:
-      - LANG=en_US.UTF-8
-      - MALLOC_ARENA_MAX=2
+      LANG: en_US.UTF-8
+      MALLOC_ARENA_MAX: "2"
+    volumes:
+      - meme-web-config:/root/.config/meme_generator
     restart: unless-stopped
+
+volumes:
+  meme-web-config:
