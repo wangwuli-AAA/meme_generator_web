@@ -25,7 +25,7 @@ loginForm.addEventListener('submit', async (event) => {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.detail || '登录失败');
-    window.location.reload();
+    window.location.replace('/');
   } catch (error) {
     showLoginError(error.message);
     loginSubmit.disabled = false;

@@ -64,6 +64,7 @@ def _load_session_secret() -> str:
 
 
 SESSION_SECRET = _load_session_secret()
+PUBLIC_MEME_INFO_PATH = re.compile(r"^/memes/[^/]+/info$")
 PUBLIC_PREVIEW_PATH = re.compile(r"^/memes/[^/]+/preview$")
 
 # Write config.toml BEFORE importing meme_generator (it loads at import time)
@@ -94,7 +95,7 @@ from meme_generator.log import LOGGING_CONFIG, setup_logger
 
 from fastapi import Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -171,12 +172,23 @@ def _get_session_user(request: Request) -> Optional[str]:
 @app.middleware("http")
 async def require_login(request: Request, call_next):
     path = request.url.path
-    public_path = path in {"/", "/auth/login", "/auth/logout", "/auth/me"}
+    public_path = path in {"/", "/login", "/auth/login", "/auth/logout", "/auth/me"}
     public_asset = path.startswith("/static/")
     public_preview = (
         request.method == "GET" and PUBLIC_PREVIEW_PATH.fullmatch(path) is not None
     )
-    if not (public_path or public_asset or public_preview or _get_session_user(request)):
+    public_meme_list = request.method == "GET" and path == "/memes/list"
+    public_meme_info = (
+        request.method == "GET" and PUBLIC_MEME_INFO_PATH.fullmatch(path) is not None
+    )
+    if not (
+        public_path
+        or public_asset
+        or public_preview
+        or public_meme_list
+        or public_meme_info
+        or _get_session_user(request)
+    ):
         return JSONResponse(
             status_code=401,
             content={"detail": "请先登录"},
@@ -198,8 +210,16 @@ class LoginRequest(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    page = "index.html" if _get_session_user(request) else "login.html"
-    return FileResponse(str(WEBAPP_DIR / page))
+    if not _get_session_user(request):
+        return RedirectResponse(url="/login", status_code=302)
+    return FileResponse(str(WEBAPP_DIR / "index.html"))
+
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    if _get_session_user(request):
+        return RedirectResponse(url="/", status_code=302)
+    return FileResponse(str(WEBAPP_DIR / "login.html"))
 
 
 @app.post("/auth/login")
