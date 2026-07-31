@@ -7,4 +7,5 @@ services:
       - "2233:2233"
     environment:
       - LANG=en_US.UTF-8
+      - MALLOC_ARENA_MAX=2
     restart: unless-stopped

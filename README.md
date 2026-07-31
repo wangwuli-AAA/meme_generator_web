@@ -42,9 +42,11 @@ pip install meme-generator==0.1.14 toml pycairo -i https://mirrors.tuna.tsinghua
 # 下载核心表情资源
 meme download
 
-# 启动
-python server.py
+# 启动（Linux/WSL 下限制 glibc 内存分配 arena，降低常驻内存）
+MALLOC_ARENA_MAX=2 python server.py
 ```
+
+在 Conda 环境中可通过 `conda env config vars set MALLOC_ARENA_MAX=2` 持久化该配置，重新激活环境后生效。
 
 ## 功能
 

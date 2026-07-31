@@ -31,7 +31,8 @@ COPY webapp/ webapp/
 COPY docker/ docker/
 COPY server.py .
 
-ENV LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    MALLOC_ARENA_MAX=2
 EXPOSE 2233
 
 CMD ["/app/docker/start.sh"]
