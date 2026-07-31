@@ -30,6 +30,7 @@ COPY memes/ memes/
 COPY webapp/ webapp/
 COPY docker/ docker/
 COPY server.py .
+RUN chmod +x /app/docker/start.sh
 
 ENV LANG=en_US.UTF-8 \
     MALLOC_ARENA_MAX=2

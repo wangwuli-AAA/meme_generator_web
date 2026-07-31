@@ -73,12 +73,15 @@ for d in ["builtin", "contrib", "crazy_emoji", "meme_emoji", "tudou_meme"]:
 
 import toml
 
-config_data = {
-    "meme": {
-        "load_builtin_memes": False,
-        "meme_dirs": meme_dirs,
-        "meme_disabled_list": [],
-    }
+try:
+    config_data = toml.load(_config_file)
+except (OSError, toml.TomlDecodeError):
+    config_data = {}
+
+config_data["meme"] = {
+    "load_builtin_memes": False,
+    "meme_dirs": meme_dirs,
+    "meme_disabled_list": [],
 }
 _config_file.write_text(toml.dumps(config_data), encoding="utf-8")
 
