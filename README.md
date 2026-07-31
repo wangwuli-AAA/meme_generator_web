@@ -52,7 +52,6 @@ MALLOC_ARENA_MAX=2 python server.py
 
 - 浏览 800+ 个表情包模板
 - 按关键词搜索
-- 按标签筛选（90 个标签）
 - 上传图片 + 填写文字生成表情
 - 支持拖拽上传、粘贴上传
 - 自动生成参数表单
@@ -84,8 +83,7 @@ meme-web/
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/memes/list?search=&tag=&page=&page_size=` | GET | 分页搜索 |
-| `/memes/tags` | GET | 标签列表 |
+| `/memes/list?search=&page=&page_size=` | GET | 分页搜索 |
 | `/memes/keys` | GET | 所有表情 key |
 | `/memes/{key}/info` | GET | 表情详情 |
 | `/memes/{key}/preview` | GET | 预览图 |

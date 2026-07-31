@@ -1,7 +1,6 @@
 const Browser = {
   state: {
     search: '',
-    tag: '',
     page: 1,
     pageSize: 24,
     total: 0,
@@ -13,8 +12,6 @@ const Browser = {
     grid: null,
     pagination: null,
     searchInput: null,
-    tagSelect: null,
-    tagList: null,
     memeCount: null,
   },
 
@@ -22,8 +19,6 @@ const Browser = {
     this.elements.grid = document.getElementById('meme-grid');
     this.elements.pagination = document.getElementById('pagination');
     this.elements.searchInput = document.getElementById('search-input');
-    this.elements.tagSelect = document.getElementById('tag-select');
-    this.elements.tagList = document.getElementById('tag-list');
     this.elements.memeCount = document.getElementById('meme-count');
 
     this.elements.searchInput.addEventListener(
@@ -31,71 +26,7 @@ const Browser = {
       Utils.debounce(() => this.onSearch(), 300)
     );
 
-    this.elements.tagSelect.addEventListener('change', () => {
-      this.state.tag = this.elements.tagSelect.value;
-      this.state.page = 1;
-      this.loadMemes();
-      this.highlightTag(this.state.tag);
-    });
-
-    this.loadTags();
     this.loadMemes();
-  },
-
-  async loadTags() {
-    try {
-      const tags = await API.getTags();
-      this.renderTags(tags);
-      this.renderTagSelect(tags);
-    } catch (e) {
-      console.error('Failed to load tags:', e);
-    }
-  },
-
-  renderTags(tags) {
-    const el = this.elements.tagList;
-    el.innerHTML = '';
-    const allItem = document.createElement('div');
-    allItem.className = 'tag-item active';
-    allItem.dataset.tag = '';
-    allItem.innerHTML = '<span>全部</span>';
-    allItem.addEventListener('click', () => this.selectTag(''));
-    el.appendChild(allItem);
-
-    for (const { tag, count } of tags) {
-      const item = document.createElement('div');
-      item.className = 'tag-item';
-      item.dataset.tag = tag;
-      item.innerHTML = `<span>${tag}</span><span class="tag-count">${count}</span>`;
-      item.addEventListener('click', () => this.selectTag(tag));
-      el.appendChild(item);
-    }
-  },
-
-  renderTagSelect(tags) {
-    const sel = this.elements.tagSelect;
-    sel.innerHTML = '<option value="">全部标签</option>';
-    for (const { tag, count } of tags) {
-      const opt = document.createElement('option');
-      opt.value = tag;
-      opt.textContent = `${tag} (${count})`;
-      sel.appendChild(opt);
-    }
-  },
-
-  selectTag(tag) {
-    this.state.tag = tag;
-    this.state.page = 1;
-    this.elements.tagSelect.value = tag;
-    this.highlightTag(tag);
-    this.loadMemes();
-  },
-
-  highlightTag(tag) {
-    const items = this.elements.tagList.querySelectorAll('.tag-item');
-    items.forEach((el) => {
-      el.classList.toggle('active', el.dataset.tag === tag);
-    });
   },
 
   onSearch() {
@@ -109,7 +40,6 @@ const Browser = {
     try {
       const data = await API.listMemes({
         search: this.state.search,
-        tag: this.state.tag,
         page: this.state.page,
         pageSize: this.state.pageSize,
       });

@@ -12,9 +12,6 @@
     <h1 class="logo">Meme Generator</h1>
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="搜索表情包..." autocomplete="off">
-      <select id="tag-select">
-        <option value="">全部标签</option>
-      </select>
     </div>
     <div class="header-stats">
       <span id="meme-count">0</span> 个表情
@@ -23,14 +20,6 @@
 </header>
 
 <div class="main-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h3>标签</h3>
-      <button class="sidebar-toggle" id="sidebar-toggle" aria-label="收起标签">☰</button>
-    </div>
-    <div class="tag-list" id="tag-list"></div>
-  </aside>
-
   <main class="content">
     <!-- Meme Grid -->
     <section class="meme-grid-section">
@@ -73,9 +62,6 @@
     </section>
   </main>
 </div>
-
-<!-- Mobile sidebar toggle -->
-<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="标签">☰</button>
 
 <!-- Toast notifications -->
 <div class="toast-container" id="toast-container"></div>

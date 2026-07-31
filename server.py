@@ -68,7 +68,6 @@ async def root():
 @app.get("/memes/list")
 async def list_memes(
     search: str = Query("", description="搜索关键词"),
-    tag: str = Query("", description="按标签筛选"),
     page: int = Query(1, ge=1),
     page_size: int = Query(24, ge=1, le=100),
 ):
@@ -80,9 +79,6 @@ async def list_memes(
             for m in memes
             if q in m.key.lower() or any(q in kw.lower() for kw in m.keywords)
         ]
-    if tag:
-        memes = [m for m in memes if tag in m.tags]
-
     total = len(memes)
     start = (page - 1) * page_size
     items = memes[start : start + page_size]
@@ -95,7 +91,6 @@ async def list_memes(
             {
                 "key": m.key,
                 "keywords": m.keywords,
-                "tags": sorted(m.tags),
                 "min_images": m.params_type.min_images,
                 "max_images": m.params_type.max_images,
                 "min_texts": m.params_type.min_texts,
@@ -104,18 +99,6 @@ async def list_memes(
             for m in items
         ],
     }
-
-
-@app.get("/memes/tags")
-async def list_tags():
-    tag_counts: dict[str, int] = {}
-    for meme in get_memes():
-        for tag in meme.tags:
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
-    return sorted(
-        [{"tag": t, "count": c} for t, c in tag_counts.items()],
-        key=lambda x: -x["count"],
-    )
 
 
 def init():
