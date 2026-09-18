@@ -9,6 +9,7 @@ const Form = {
 
   elements: {
     section: null,
+    emptyState: null,
     title: null,
     close: null,
     imageGroup: null,
@@ -29,6 +30,7 @@ const Form = {
 
   init() {
     this.elements.section = document.getElementById('meme-form-section');
+    this.elements.emptyState = document.getElementById('editor-empty-state');
     this.elements.title = document.getElementById('form-title');
     this.elements.close = document.getElementById('form-close');
     this.elements.imageGroup = document.getElementById('image-group');
@@ -60,7 +62,7 @@ const Form = {
       if (requestId !== this.loadRequestId) return;
       this.currentMeme = info;
       this.render(info);
-      this.elements.section.style.display = 'block';
+      this.elements.section.classList.remove('is-empty');
       const firstInput = this.elements.section.querySelector('input, textarea, select');
       if (firstInput) firstInput.focus();
       if (window.matchMedia('(max-width: 768px)').matches) {
@@ -94,7 +96,7 @@ const Form = {
     this.elements.btnGenerate.disabled = false;
     this.elements.btnDownload.disabled = true;
     this.setGenerationStatus('');
-    this.elements.section.style.display = 'none';
+    this.elements.section.classList.add('is-empty');
   },
 
   clearResult() {
