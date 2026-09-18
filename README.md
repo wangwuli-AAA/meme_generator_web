@@ -23,6 +23,21 @@ docker run -d --name meme-web -p 2233:2233 meme-web:latest
 
 访问 http://localhost:2233/
 
+生产环境建议显式设置登录凭据和 Session Secret：
+
+```bash
+docker run -d --name meme-web -p 2233:2233 \
+  -e MEME_WEB_ENV=production \
+  -e MEME_WEB_USERNAME=your-user \
+  -e MEME_WEB_PASSWORD=your-password \
+  -e MEME_WEB_SESSION_SECRET=replace-with-a-long-random-secret \
+  meme-web:latest
+```
+
+默认请求体大小限制为 20 MiB，生成并发数默认为 2，可通过
+`MEME_WEB_MAX_REQUEST_BYTES`、`MEME_WEB_MAX_GENERATION_CONCURRENCY` 和
+`MEME_WEB_GENERATION_QUEUE_TIMEOUT` 调整。
+
 使用 docker-compose：
 
 ```bash
@@ -88,6 +103,7 @@ meme-web/
 | `/memes/{key}/info` | GET | 表情详情 |
 | `/memes/{key}/preview` | GET | 预览图 |
 | `/memes/{key}/` | POST | 生成表情（multipart: images, texts, args） |
+| `/health` | GET | 健康检查与已加载模板数量 |
 
 ## 感谢
 

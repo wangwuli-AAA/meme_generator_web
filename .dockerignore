@@ -1,0 +1,13 @@
+.git
+.git/**
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.tar
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+node_modules/
+.DS_Store

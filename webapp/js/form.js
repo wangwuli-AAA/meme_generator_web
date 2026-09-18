@@ -2,6 +2,7 @@ const Form = {
   currentMeme: null,
   currentBlob: null,
   currentResultUrl: null,
+  resultController: null,
   loadRequestId: 0,
   resultRequestId: 0,
   editorVersion: 0,
@@ -23,6 +24,7 @@ const Form = {
     btnDownload: null,
     resultArea: null,
     resultImage: null,
+    generationStatus: null,
   },
 
   init() {
@@ -42,6 +44,7 @@ const Form = {
     this.elements.btnDownload = document.getElementById('btn-download');
     this.elements.resultArea = document.getElementById('result-area');
     this.elements.resultImage = document.getElementById('result-image');
+    this.elements.generationStatus = document.getElementById('generation-status');
 
     this.elements.close.addEventListener('click', () => this.close());
     this.elements.btnPreview.addEventListener('click', () => this.preview());
@@ -58,7 +61,11 @@ const Form = {
       this.currentMeme = info;
       this.render(info);
       this.elements.section.style.display = 'block';
-      this.elements.section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const firstInput = this.elements.section.querySelector('input, textarea, select');
+      if (firstInput) firstInput.focus();
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        this.elements.section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (e) {
       if (requestId !== this.loadRequestId) return;
       Utils.toast('加载表情信息失败: ' + e.message, 'error');
@@ -69,6 +76,11 @@ const Form = {
     this.editorVersion++;
     this.resultRequestId++;
     this.currentMeme = null;
+    if (this.resultController) {
+      this.resultController.abort();
+      this.resultController = null;
+    }
+    this.revokeImagePreviews();
     this.clearResult();
 
     this.elements.imageArea.innerHTML = '';
@@ -81,6 +93,7 @@ const Form = {
     this.elements.btnPreview.disabled = false;
     this.elements.btnGenerate.disabled = false;
     this.elements.btnDownload.disabled = true;
+    this.setGenerationStatus('');
     this.elements.section.style.display = 'none';
   },
 
@@ -93,6 +106,21 @@ const Form = {
     this.elements.resultImage.removeAttribute('src');
     this.elements.resultArea.style.display = 'none';
     this.elements.btnDownload.disabled = true;
+  },
+
+  revokeImagePreviews() {
+    this.elements.imageArea.querySelectorAll('.image-slot').forEach((slot) => {
+      if (slot.dataset.previewUrl) {
+        URL.revokeObjectURL(slot.dataset.previewUrl);
+        delete slot.dataset.previewUrl;
+      }
+    });
+  },
+
+  setGenerationStatus(message) {
+    if (this.elements.generationStatus) {
+      this.elements.generationStatus.textContent = message;
+    }
   },
 
   render(info) {
@@ -169,36 +197,59 @@ const Form = {
   onImageSelected(e, slot) {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      Utils.toast('请选择图片文件', 'error');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      Utils.toast('图片不能超过 20 MB', 'error');
+      e.target.value = '';
+      return;
+    }
 
     const editorVersion = this.editorVersion;
     const readRequestId = String((Number(slot.dataset.readRequestId) || 0) + 1);
     slot.dataset.readRequestId = readRequestId;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (
-        editorVersion !== this.editorVersion
-        || slot.dataset.readRequestId !== readRequestId
-      ) return;
-      slot.classList.add('has-image');
-      slot.innerHTML = `
-        <img src="${ev.target.result}" alt="预览">
-        <button class="image-slot-remove" title="移除">&times;</button>
-        <input type="file" accept="image/*">
-      `;
-      const newInput = slot.querySelector('input');
-      newInput.files = e.target.files;
-      newInput.addEventListener('change', (ev2) => this.onImageSelected(ev2, slot));
-      slot.querySelector('.image-slot-remove').addEventListener('click', (ev3) => {
-        ev3.stopPropagation();
-        this.clearSlot(slot);
-      });
-    };
-    reader.readAsDataURL(file);
+    if (
+      editorVersion !== this.editorVersion
+      || slot.dataset.readRequestId !== readRequestId
+    ) return;
+    if (slot.dataset.previewUrl) URL.revokeObjectURL(slot.dataset.previewUrl);
+    const previewUrl = URL.createObjectURL(file);
+    slot.dataset.previewUrl = previewUrl;
+    slot.classList.add('has-image');
+    slot.innerHTML = '';
+    const image = document.createElement('img');
+    image.src = previewUrl;
+    image.alt = '已选择的图片预览';
+    const removeButton = document.createElement('button');
+    removeButton.className = 'image-slot-remove';
+    removeButton.type = 'button';
+    removeButton.title = '移除图片';
+    removeButton.setAttribute('aria-label', '移除图片');
+    removeButton.innerHTML = '&times;';
+    const replacementInput = document.createElement('input');
+    replacementInput.type = 'file';
+    replacementInput.accept = 'image/*';
+    slot.appendChild(image);
+    slot.appendChild(removeButton);
+    slot.appendChild(replacementInput);
+    replacementInput.files = e.target.files;
+    replacementInput.addEventListener('change', (ev2) => this.onImageSelected(ev2, slot));
+    removeButton.addEventListener('click', (ev3) => {
+      ev3.stopPropagation();
+      this.clearSlot(slot);
+    });
   },
 
   clearSlot(slot) {
     slot.dataset.readRequestId = String((Number(slot.dataset.readRequestId) || 0) + 1);
     slot.classList.remove('has-image');
+    if (slot.dataset.previewUrl) {
+      URL.revokeObjectURL(slot.dataset.previewUrl);
+      delete slot.dataset.previewUrl;
+    }
     const idx = slot.dataset.index;
     slot.innerHTML = `
       <div class="image-slot-placeholder">+</div>
@@ -419,15 +470,18 @@ const Form = {
     this.clearResult();
     this.elements.btnPreview.disabled = true;
     this.elements.btnGenerate.disabled = true;
+    this.setGenerationStatus('正在加载预览…');
     try {
       const blob = await API.getPreview(info.key);
       if (requestId !== this.resultRequestId || this.currentMeme !== info) return;
       this.currentResultUrl = URL.createObjectURL(blob);
       this.elements.resultImage.src = this.currentResultUrl;
       this.elements.resultArea.style.display = 'block';
+      this.setGenerationStatus('预览已更新');
     } catch (e) {
       if (requestId !== this.resultRequestId || this.currentMeme !== info) return;
       Utils.toast('预览失败: ' + e.message, 'error');
+      this.setGenerationStatus('预览失败');
     } finally {
       if (requestId === this.resultRequestId) {
         this.elements.btnPreview.disabled = false;
@@ -492,10 +546,13 @@ const Form = {
     this.clearResult();
     this.elements.btnGenerate.disabled = true;
     this.elements.btnPreview.disabled = true;
+    this.resultController = new AbortController();
+    this.setGenerationStatus('正在生成，请稍候…');
+    this.elements.btnGenerate.setAttribute('aria-busy', 'true');
     Utils.toast('正在生成...', 'info', 2000);
 
     try {
-      const blob = await API.generate(info.key, fd);
+      const blob = await API.generate(info.key, fd, this.resultController.signal);
       if (requestId !== this.resultRequestId || this.currentMeme !== info) return;
       this.currentBlob = blob;
       if (this.currentResultUrl) URL.revokeObjectURL(this.currentResultUrl);
@@ -504,14 +561,19 @@ const Form = {
       this.elements.resultArea.style.display = 'block';
       this.elements.btnDownload.disabled = false;
       Utils.toast('生成成功！', 'success', 2000);
+      this.setGenerationStatus('生成成功');
     } catch (e) {
+      if (e.name === 'AbortError') return;
       if (requestId !== this.resultRequestId || this.currentMeme !== info) return;
       Utils.toast('生成失败: ' + e.message, 'error');
+      this.setGenerationStatus('生成失败');
     } finally {
       if (requestId === this.resultRequestId) {
         this.elements.btnGenerate.disabled = false;
         this.elements.btnPreview.disabled = false;
+        this.elements.btnGenerate.setAttribute('aria-busy', 'false');
       }
+      this.resultController = null;
     }
   },
 
